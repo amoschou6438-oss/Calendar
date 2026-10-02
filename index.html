@@ -1799,14 +1799,26 @@
   });
 
   function startEdit(ev){
+    // 會議類事項沒有對應的類別選項，改用「會議」視窗編輯
+    if(ev.tag === 'meeting'){
+      const key = selectedKey;
+      closeDayModal();
+      openMeetingModal();
+      startEditMeeting(key, ev);
+      return;
+    }
     editingId = ev.id;
     document.getElementById('titleInput').value = ev.title;
     document.getElementById('timeInput').value = ev.time || '';
-    document.querySelector('input[name=tag][value="'+ev.tag+'"]').checked = true;
+    const radio = document.querySelector('input[name=tag][value="'+ev.tag+'"]')
+               || document.querySelector('input[name=tag][value="gold"]');
+    radio.checked = true;
     document.getElementById('formTitleLabel').textContent = '編輯事項';
     document.getElementById('saveBtn').textContent = '更新';
     updateFormFieldsForTag();
     showForm();
+    document.getElementById('formArea').scrollIntoView({behavior:'smooth', block:'center'});
+    document.getElementById('titleInput').focus();
   }
 
   function resetForm(){
@@ -2845,10 +2857,12 @@ function __startDraggableMenu(cfg) {
     meetingTypeSelect.value = '童蒙班會議';
     meetingCustomNameInput.style.display = 'none';
     meetingCustomNameInput.value = '';
-    meetingYearSelect.value = today.getFullYear();
-    meetingMonthSelect.value = today.getMonth()+1;
+    // 預設帶入目前在月曆上選取的日期（沒有選取時才用今天）
+    const [dy, dm, dd] = (selectedKey || fmtKey(today.getFullYear(), today.getMonth(), today.getDate())).split('-').map(Number);
+    meetingYearSelect.value = dy;
+    meetingMonthSelect.value = dm;
     populateMeetingDayOptions();
-    meetingDaySelect.value = today.getDate();
+    meetingDaySelect.value = dd;
     document.getElementById('meetingTimeInput').value = '20:00';
     document.getElementById('meetingFormTitleLabel').textContent = '新增會議';
     document.getElementById('meetingSaveBtn').textContent = '新增';
@@ -2886,6 +2900,14 @@ function __startDraggableMenu(cfg) {
     }
     await saveEvents();
     resetMeetingForm();
+    // 儲存後保留所選日期（不要退回今天），並讓月曆跳到該日期所在月份
+    meetingYearSelect.value = y;
+    meetingMonthSelect.value = m;
+    populateMeetingDayOptions();
+    meetingDaySelect.value = d;
+    viewYear = y;
+    viewMonth = m - 1;
+    selectedKey = newKey;
     renderMeetingList();
     render();
     renderPanel();
