@@ -2478,13 +2478,20 @@ function __startDraggableMenu(cfg) {
     document.getElementById('birthdayNameInput').focus();
   }
 
+  // 目前在月曆上選取的日期（沒有選取時用今天），供各表單當預設日期
+  function getDefaultDateParts(){
+    const k = selectedKey || fmtKey(today.getFullYear(), today.getMonth(), today.getDate());
+    return k.split('-').map(Number);
+  }
+
   function resetBirthdayForm(){
     editingBirthdayId = null;
     document.getElementById('birthdayNameInput').value = '';
+    const [, bm, bd] = getDefaultDateParts();
     birthdayYearSelect.value = today.getFullYear();
-    birthdayMonthSelect.value = today.getMonth()+1;
+    birthdayMonthSelect.value = bm;
     populateBirthdayDayOptions();
-    birthdayDaySelect.value = today.getDate();
+    birthdayDaySelect.value = bd;
     updateBirthdayAgePreview();
     document.getElementById('birthdayFormTitleLabel').textContent = '🎂 新增生日';
     document.getElementById('birthdaySaveBtn').textContent = '新增';
@@ -3064,10 +3071,11 @@ function __startDraggableMenu(cfg) {
     document.getElementById('specialNameInput').value = '';
     specialFreqSelect.value = 'yearly';
     updateSpecialFreqVisibility();
-    specialMonthSelect.value = today.getMonth()+1;
+    const [, sm, sd] = getDefaultDateParts();
+    specialMonthSelect.value = sm;
     populateSpecialDayOptions();
-    specialDaySelect.value = today.getDate();
-    specialMonthlyDaySelect.value = Math.min(today.getDate(), 31);
+    specialDaySelect.value = sd;
+    specialMonthlyDaySelect.value = Math.min(sd, 31);
     specialEndDateInput.value = '';
     document.getElementById('specialFormTitleLabel').textContent = '新增特殊事項';
     document.getElementById('specialSaveBtn').textContent = '新增';
