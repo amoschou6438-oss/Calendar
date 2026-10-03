@@ -1225,21 +1225,118 @@
     return TAIWAN_HOLIDAYS[fmtKey(year, month, day)] || null;
   }
 
-  const seedEvents = {
-    '2026-09-13': [{id:'s1', title:'祭拜理事', time:'10:00', tag:'red'}],
-    '2026-09-20': [{id:'s2', title:'童蒙班', time:'', tag:'gold'}],
-    '2026-09-26': [{id:'s3', title:'台北簽約', time:'', tag:'red'}],
-    '2026-09-27': [{id:'s4', title:'青少班', time:'', tag:'gold'}],
-    '2026-10-02': [{id:'s5', title:'童蒙班會議', time:'', tag:'gold'}],
-    '2026-10-03': [{id:'s6', title:'學人班', time:'08:00到', tag:'gold'}],
-    '2026-10-08': [{id:'s7', title:'青少班會議', time:'', tag:'gold'}],
-    '2026-10-31': [{id:'s8', title:'回報餐點', time:'', tag:'gold'}],
-    '2026-11-05': [{id:'s9', title:'戶外行前會議', time:'', tag:'gold'}],
-    '2026-11-07': [{id:'s10', title:'學人班', time:'08:00到', tag:'gold'}],
-    '2026-11-21': [{id:'s11', title:'戶外場佈', time:'', tag:'gold'}],
-    '2026-11-22': [{id:'s12', title:'戶外活動', time:'', tag:'red'}],
-    '2026-12-05': [{id:'s13', title:'學人班', time:'08:00到', tag:'gold'}]
+  const DEFAULT_BACKUP = {
+    "events": {
+      "2026-09-13": [
+        {
+          "id": "s1",
+          "title": "祭拜理事",
+          "time": "10:00",
+          "tag": "red"
+        }
+      ],
+      "2026-09-20": [
+        {
+          "id": "s2",
+          "title": "童蒙班",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-09-26": [
+        {
+          "id": "s3",
+          "title": "台北簽約",
+          "time": "",
+          "tag": "red"
+        }
+      ],
+      "2026-09-27": [
+        {
+          "id": "s4",
+          "title": "青少班",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-10-02": [
+        {
+          "id": "s5",
+          "title": "童蒙班會議",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-10-03": [
+        {
+          "id": "s6",
+          "title": "學人班",
+          "time": "08:00到",
+          "tag": "gold"
+        }
+      ],
+      "2026-10-08": [
+        {
+          "id": "s7",
+          "title": "青少班會議",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-10-31": [
+        {
+          "id": "s8",
+          "title": "回報餐點",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-11-05": [
+        {
+          "id": "s9",
+          "title": "戶外行前會議",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-11-07": [
+        {
+          "id": "s10",
+          "title": "學人班",
+          "time": "08:00到",
+          "tag": "gold"
+        }
+      ],
+      "2026-11-21": [
+        {
+          "id": "s11",
+          "title": "戶外場佈",
+          "time": "",
+          "tag": "gold"
+        }
+      ],
+      "2026-11-22": [
+        {
+          "id": "s12",
+          "title": "戶外活動",
+          "time": "",
+          "tag": "red"
+        }
+      ],
+      "2026-12-05": [
+        {
+          "id": "s13",
+          "title": "學人班",
+          "time": "08:00到",
+          "tag": "gold"
+        }
+      ]
+    },
+    "routines": [],
+    "birthdays": [],
+    "specials": []
   };
+  const seedEvents = DEFAULT_BACKUP.events;
 
   let events = {};
   let routines = [];
@@ -1429,10 +1526,10 @@
       if(res && res.value){
         routines = JSON.parse(res.value);
       } else {
-        routines = [];
+        routines = JSON.parse(JSON.stringify(DEFAULT_BACKUP.routines));
       }
     } catch(e){
-      routines = [];
+      routines = JSON.parse(JSON.stringify(DEFAULT_BACKUP.routines));
     }
   }
 
@@ -1450,10 +1547,10 @@
       if(res && res.value){
         birthdays = JSON.parse(res.value);
       } else {
-        birthdays = [];
+        birthdays = JSON.parse(JSON.stringify(DEFAULT_BACKUP.birthdays));
       }
     } catch(e){
-      birthdays = [];
+      birthdays = JSON.parse(JSON.stringify(DEFAULT_BACKUP.birthdays));
     }
   }
 
@@ -1471,10 +1568,10 @@
       if(res && res.value){
         specials = JSON.parse(res.value);
       } else {
-        specials = [];
+        specials = JSON.parse(JSON.stringify(DEFAULT_BACKUP.specials));
       }
     } catch(e){
-      specials = [];
+      specials = JSON.parse(JSON.stringify(DEFAULT_BACKUP.specials));
     }
   }
 
