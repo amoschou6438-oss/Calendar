@@ -333,6 +333,11 @@
     border-color: rgba(122,171,110,0.4);
   }
   .chip.special::before{ background: var(--green); }
+  .chip.general{
+    background: rgba(111,155,209,0.14);
+    border-color: rgba(111,155,209,0.4);
+  }
+  .chip.general::before{ background: #6f9bd1; }
   .fab-add-btn{
     width: 54px;
     height: 54px;
@@ -447,6 +452,7 @@
   .event-item.birthday{ border-left-color: var(--purple); }
   .event-item.meeting{ border-left-color: var(--teal); }
   .event-item.special{ border-left-color: var(--green); }
+  .event-item.general{ border-left-color: #6f9bd1; }
   .event-item .info{ flex:1; }
   .event-item .info .title{ font-weight: 600; }
   .event-item .info .time{ color: var(--muted); font-size: 11.5px; margin-top:2px; }
@@ -638,6 +644,16 @@
     margin-left: 6px;
     vertical-align: middle;
   }
+  .badge-general{
+    display:inline-block;
+    font-size: 10px;
+    color: #6f9bd1;
+    border: 1px solid #4a6c94;
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
   .badge-special{
     display:inline-block;
     font-size: 10px;
@@ -750,6 +766,7 @@
   .routine-item.birthday{ border-left-color: var(--purple); }
   .routine-item.meeting{ border-left-color: var(--teal); }
   .routine-item.special{ border-left-color: var(--green); }
+  .routine-item.general{ border-left-color: #6f9bd1; }
   .routine-item .info .title{ font-weight: 600; }
   .routine-item .info .desc{ color: var(--muted); font-size: 11.5px; margin-top:3px; }
   .routine-item .actions{ display:flex; gap:6px; flex-shrink:0; }
@@ -1017,10 +1034,45 @@
       <button class="modal-close" id="scheduleTypeModalClose">&times;</button>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+      <button class="btn schedule-type-btn" id="chooseGeneralBtn">📝 一般排程</button>
       <button class="btn schedule-type-btn" id="chooseRoutineBtn">🗓️ 例行班會</button>
       <button class="btn schedule-type-btn" id="chooseBirthdayBtn">🎂 生日</button>
       <button class="btn schedule-type-btn" id="chooseMeetingBtn">🤝 會議</button>
       <button class="btn schedule-type-btn" id="chooseSpecialBtn">⭐ 特殊事項</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="generalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📝 一般排程</h2>
+      <button class="modal-close" id="generalModalClose">&times;</button>
+    </div>
+
+    <div class="routine-list" id="generalList"></div>
+
+    <div class="form" id="generalFormArea" style="margin-top:0; border-top:1px solid var(--panel-line); padding-top:14px;">
+      <div id="generalFormTitleLabel" style="font-size:12.5px; color:var(--muted); margin-bottom:6px;">新增一般排程</div>
+
+      <label>名稱</label>
+      <input type="text" id="generalNameInput" placeholder="例如：看牙醫">
+
+      <label style="margin-top:10px;">日期（西元年／月／日）</label>
+      <div class="inline-fields">
+        <div><select id="generalYearInput"></select></div>
+        <div><select id="generalMonthInput"></select></div>
+        <div><select id="generalDayInput"></select></div>
+      </div>
+
+      <label>時間（選填）</label>
+      <input type="time" id="generalTimeInput">
+
+      <div class="form-actions">
+        <button class="btn cancel" id="generalCancelEditBtn" style="display:none;">取消編輯</button>
+        <button class="btn primary" id="generalSaveBtn">新增</button>
+      </div>
+      <div class="status" id="generalStatusMsg"></div>
     </div>
   </div>
 </div>
@@ -1655,7 +1707,7 @@
 
       dayEvents.forEach(ev=>{
         const chip = document.createElement('span');
-        chip.className = 'chip' + (ev.tag==='red' ? ' red':'') + (ev.tag==='birthday' ? ' birthday':'') + (ev.tag==='meeting' ? ' meeting':'') + (ev.tag==='special' ? ' special':'') + (ev.isRoutine ? ' routine':'');
+        chip.className = 'chip' + (ev.tag==='red' ? ' red':'') + (ev.tag==='birthday' ? ' birthday':'') + (ev.tag==='meeting' ? ' meeting':'') + (ev.tag==='special' ? ' special':'') + (ev.tag==='general' ? ' general':'') + (ev.isRoutine ? ' routine':'');
         const ageSuffix = (ev.isBirthday && typeof ev.age === 'number') ? '（'+ev.age+'歲）' : '';
         chip.textContent = ev.title + ageSuffix + (ev.time ? ' '+ev.time : '');
         eventsWrap.appendChild(chip);
@@ -1716,7 +1768,7 @@
 
     dayEvents.forEach(ev=>{
       const item = document.createElement('div');
-      item.className = 'event-item' + (ev.tag==='red' ? ' red':'') + (ev.tag==='birthday' ? ' birthday':'') + (ev.tag==='meeting' ? ' meeting':'') + (ev.tag==='special' ? ' special':'');
+      item.className = 'event-item' + (ev.tag==='red' ? ' red':'') + (ev.tag==='birthday' ? ' birthday':'') + (ev.tag==='meeting' ? ' meeting':'') + (ev.tag==='special' ? ' special':'') + (ev.tag==='general' ? ' general':'');
 
       const info = document.createElement('div');
       info.className = 'info';
@@ -1741,6 +1793,12 @@
         badge.textContent = '會議';
         t.appendChild(badge);
       }
+      if(ev.tag==='general'){
+        const badge = document.createElement('span');
+        badge.className = 'badge-general';
+        badge.textContent = '一般';
+        t.appendChild(badge);
+      }
       if(ev.isSpecial){
         const badge = document.createElement('span');
         badge.className = 'badge-special';
@@ -1749,7 +1807,7 @@
       }
       // 手動新增的事項（非例行／生日／會議／特殊自動展開項目）：加上類別文字標籤，
       // 避免只靠左側 3px 色條區分，導致視覺上「看起來都一樣」。
-      if(!ev.isRoutine && !ev.isBirthday && !ev.isSpecial && ev.tag !== 'meeting'){
+      if(!ev.isRoutine && !ev.isBirthday && !ev.isSpecial && ev.tag !== 'meeting' && ev.tag !== 'general'){
         const badge = document.createElement('span');
         if(ev.tag === 'red'){
           badge.className = 'badge-tag badge-tag-red';
@@ -1897,6 +1955,13 @@
 
   function startEdit(ev){
     // 會議類事項沒有對應的類別選項，改用「會議」視窗編輯
+    if(ev.tag === 'general'){
+      const key = selectedKey;
+      closeDayModal();
+      openGeneralModal();
+      startEditGeneral(key, ev);
+      return;
+    }
     if(ev.tag === 'meeting'){
       const key = selectedKey;
       closeDayModal();
@@ -2823,6 +2888,10 @@ function __startDraggableMenu(cfg) {
     closeScheduleTypeModal();
     openBirthdayModal();
   });
+  document.getElementById('chooseGeneralBtn').addEventListener('click', ()=>{
+    closeScheduleTypeModal();
+    openGeneralModal();
+  });
   document.getElementById('chooseMeetingBtn').addEventListener('click', ()=>{
     closeScheduleTypeModal();
     openMeetingModal();
@@ -3032,6 +3101,186 @@ function __startDraggableMenu(cfg) {
   });
   document.getElementById('meetingSaveBtn').addEventListener('click', saveMeetingForm);
   document.getElementById('meetingCancelEditBtn').addEventListener('click', resetMeetingForm);
+
+  // --- 一般排程：名稱／日期／時間 ---
+  const generalYearSelect = document.getElementById('generalYearInput');
+  const generalMonthSelect = document.getElementById('generalMonthInput');
+  const generalDaySelect = document.getElementById('generalDayInput');
+  const generalNameInput = document.getElementById('generalNameInput');
+  const generalTimeInput = document.getElementById('generalTimeInput');
+  let editingGeneralId = null;
+
+  (function(){
+    const curY = today.getFullYear();
+    for(let y = curY-2; y <= curY+10; y++){
+      const o = document.createElement('option'); o.value = y; o.textContent = y + '年'; generalYearSelect.appendChild(o);
+    }
+    for(let m=1; m<=12; m++){
+      const o = document.createElement('option'); o.value = m; o.textContent = m + '月'; generalMonthSelect.appendChild(o);
+    }
+  })();
+  function populateGeneralDayOptions(){
+    const y = Number(generalYearSelect.value) || today.getFullYear();
+    const m = Number(generalMonthSelect.value) || 1;
+    const dim = new Date(y, m, 0).getDate();
+    const prevVal = Number(generalDaySelect.value) || 1;
+    generalDaySelect.innerHTML = '';
+    for(let d=1; d<=dim; d++){
+      const o = document.createElement('option'); o.value = d; o.textContent = d + '日'; generalDaySelect.appendChild(o);
+    }
+    generalDaySelect.value = Math.min(prevVal, dim);
+  }
+  populateGeneralDayOptions();
+  generalYearSelect.addEventListener('change', populateGeneralDayOptions);
+  generalMonthSelect.addEventListener('change', populateGeneralDayOptions);
+
+  function getAllGeneralEvents(){
+    const list = [];
+    Object.keys(events).forEach(key=>{
+      (events[key]||[]).forEach(ev=>{
+        if(ev.tag === 'general') list.push({ key, ev });
+      });
+    });
+    list.sort((a,b)=> a.key.localeCompare(b.key) || (a.ev.time||'').localeCompare(b.ev.time||''));
+    return list;
+  }
+
+  function setGeneralStatus(msg){
+    const el = document.getElementById('generalStatusMsg');
+    el.textContent = msg;
+    if(msg) setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 2500);
+  }
+
+  function renderGeneralList(){
+    const list = document.getElementById('generalList');
+    list.innerHTML = '';
+    const all = getAllGeneralEvents();
+    if(all.length === 0){
+      const p = document.createElement('div');
+      p.className = 'empty-note small';
+      p.textContent = '目前沒有一般排程，請在下方新增。';
+      list.appendChild(p);
+    }
+    all.forEach(({key, ev})=>{
+      const item = document.createElement('div');
+      item.className = 'routine-item general';
+      const info = document.createElement('div');
+      info.className = 'info';
+      const t = document.createElement('div');
+      t.className = 'title';
+      t.textContent = ev.title;
+      info.appendChild(t);
+      const d = document.createElement('div');
+      d.className = 'desc';
+      d.textContent = key + (ev.time ? '　' + ev.time : '');
+      info.appendChild(d);
+      item.appendChild(info);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '編輯';
+      editBtn.addEventListener('click', ()=> startEditGeneral(key, ev));
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del';
+      delBtn.textContent = '刪除';
+      delBtn.addEventListener('click', async ()=>{
+        events[key] = (events[key]||[]).filter(e=> e.id !== ev.id);
+        if(events[key].length===0) delete events[key];
+        await saveEvents();
+        if(editingGeneralId && editingGeneralId.id === ev.id) resetGeneralForm();
+        setGeneralStatus('已刪除');
+        renderGeneralList();
+        render();
+        renderPanel();
+      });
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      item.appendChild(actions);
+      list.appendChild(item);
+    });
+  }
+
+  function startEditGeneral(key, ev){
+    editingGeneralId = { key, id: ev.id };
+    const [y,m,d] = key.split('-').map(Number);
+    generalNameInput.value = ev.title;
+    generalYearSelect.value = y;
+    generalMonthSelect.value = m;
+    populateGeneralDayOptions();
+    generalDaySelect.value = d;
+    generalTimeInput.value = ev.time || '';
+    document.getElementById('generalFormTitleLabel').textContent = '編輯一般排程';
+    document.getElementById('generalSaveBtn').textContent = '更新';
+    document.getElementById('generalCancelEditBtn').style.display = 'block';
+  }
+
+  function resetGeneralForm(){
+    editingGeneralId = null;
+    generalNameInput.value = '';
+    // 預設帶入目前在月曆上選取的日期（沒有選取時才用今天）
+    const [dy, dm, dd] = (selectedKey || fmtKey(today.getFullYear(), today.getMonth(), today.getDate())).split('-').map(Number);
+    generalYearSelect.value = dy;
+    generalMonthSelect.value = dm;
+    populateGeneralDayOptions();
+    generalDaySelect.value = dd;
+    generalTimeInput.value = '';
+    document.getElementById('generalFormTitleLabel').textContent = '新增一般排程';
+    document.getElementById('generalSaveBtn').textContent = '新增';
+    document.getElementById('generalCancelEditBtn').style.display = 'none';
+  }
+
+  async function saveGeneralForm(){
+    const name = generalNameInput.value.trim();
+    if(!name){ setGeneralStatus('請輸入名稱'); return; }
+    const y = Number(generalYearSelect.value);
+    const m = Number(generalMonthSelect.value);
+    const d = Number(generalDaySelect.value);
+    const time = generalTimeInput.value.trim();
+    if(!y || !m || !d){ setGeneralStatus('請選擇完整的日期'); return; }
+    const newKey = fmtKey(y, m-1, d);
+
+    if(editingGeneralId){
+      const { key: oldKey, id: oldId } = editingGeneralId;
+      events[oldKey] = (events[oldKey]||[]).filter(e=> e.id !== oldId);
+      if(events[oldKey].length===0) delete events[oldKey];
+      if(!events[newKey]) events[newKey] = [];
+      events[newKey].push({ id: oldId, title: name, time: time, tag: 'general' });
+      setGeneralStatus('已更新');
+    } else {
+      if(!events[newKey]) events[newKey] = [];
+      events[newKey].push({ id: 'ev'+Date.now()+Math.floor(Math.random()*1000), title: name, time: time, tag: 'general' });
+      setGeneralStatus('已新增');
+    }
+    await saveEvents();
+    resetGeneralForm();
+    generalYearSelect.value = y;
+    generalMonthSelect.value = m;
+    populateGeneralDayOptions();
+    generalDaySelect.value = d;
+    viewYear = y;
+    viewMonth = m - 1;
+    selectedKey = newKey;
+    renderGeneralList();
+    render();
+    renderPanel();
+  }
+
+  function openGeneralModal(){
+    renderGeneralList();
+    resetGeneralForm();
+    document.getElementById('generalModal').classList.add('open');
+  }
+  function closeGeneralModal(){
+    document.getElementById('generalModal').classList.remove('open');
+    resetGeneralForm();
+  }
+  document.getElementById('generalModalClose').addEventListener('click', closeGeneralModal);
+  document.getElementById('generalModal').addEventListener('click', (e)=>{
+    if(e.target.id === 'generalModal') closeGeneralModal();
+  });
+  document.getElementById('generalSaveBtn').addEventListener('click', saveGeneralForm);
+  document.getElementById('generalCancelEditBtn').addEventListener('click', resetGeneralForm);
 
   // --- 特殊事項：月／日 下拉選單 ---
   const specialMonthSelect = document.getElementById('specialMonthInput');
