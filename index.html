@@ -931,7 +931,11 @@
       <div id="routineFormTitleLabel" style="font-size:12.5px; color:var(--muted); margin-bottom:6px;">新增例行班會</div>
 
       <label>項目名稱</label>
-      <input type="text" id="routineTitleInput" placeholder="例如：青少班">
+      <select id="routineTitleInput">
+        <option value="青少班">青少班</option>
+        <option value="童蒙班">童蒙班</option>
+        <option value="學人班">學人班</option>
+      </select>
 
       <div class="inline-fields">
         <div>
@@ -2131,7 +2135,15 @@
 
   function startEditRoutine(r){
     editingRoutineId = r.id;
-    document.getElementById('routineTitleInput').value = r.title;
+    // 舊資料若名稱不在三個選項內，暫時補上該選項，避免編輯時名稱被改掉
+    const titleSel = document.getElementById('routineTitleInput');
+    titleSel.querySelectorAll('option[data-extra]').forEach(o=>o.remove());
+    if(![...titleSel.options].some(o=>o.value===r.title)){
+      const o = document.createElement('option');
+      o.value = r.title; o.textContent = r.title; o.dataset.extra = '1';
+      titleSel.appendChild(o);
+    }
+    titleSel.value = r.title;
     document.getElementById('routineTimeInput').value = r.time || '';
     document.getElementById('routineTagInput').value = r.tag;
     document.getElementById('routineWeekdayInput').value = r.weekday;
@@ -2145,7 +2157,9 @@
 
   function resetRoutineForm(){
     editingRoutineId = null;
-    document.getElementById('routineTitleInput').value = '';
+    const titleSel = document.getElementById('routineTitleInput');
+    titleSel.querySelectorAll('option[data-extra]').forEach(o=>o.remove());
+    titleSel.selectedIndex = 0;
     document.getElementById('routineTimeInput').value = '';
     document.getElementById('routineTagInput').value = 'gold';
     document.getElementById('routineWeekdayInput').value = '0';
@@ -2823,12 +2837,16 @@ function __startDraggableMenu(cfg) {
       try{
         const data = JSON.parse(reader.result);
         const evCount = data.events ? Object.values(data.events).reduce((sum, arr)=> sum + (Array.isArray(arr)?arr.length:0), 0) : 0;
+        const countTag = (tag)=> data.events ? Object.values(data.events).reduce((sum, arr)=> sum + (Array.isArray(arr)? arr.filter(e=>e && e.tag===tag).length : 0), 0) : 0;
+        const gnCount = countTag('general');
+        const mtCount = countTag('meeting');
+        const otherCount = evCount - gnCount - mtCount;
         const rtCount = Array.isArray(data.routines) ? data.routines.length : 0;
         const bdCount = Array.isArray(data.birthdays) ? data.birthdays.length : 0;
         const spCount = Array.isArray(data.specials) ? data.specials.length : 0;
         pendingRestoreData = data;
         document.getElementById('restorePreviewText').textContent =
-          '偵測到備份檔案：一般事項／會議 ' + evCount + ' 筆、例行班會 ' + rtCount + ' 筆、生日 ' + bdCount + ' 筆、特殊事項 ' + spCount + ' 筆。確認回復將覆蓋目前所有資料，此動作無法復原。';
+          '偵測到備份檔案：一般排程 ' + gnCount + ' 筆、會議 ' + mtCount + ' 筆、其他事項 ' + otherCount + ' 筆、例行班會 ' + rtCount + ' 筆、生日 ' + bdCount + ' 筆、特殊事項 ' + spCount + ' 筆。確認回復將覆蓋目前所有資料，此動作無法復原。';
         document.getElementById('restorePreview').style.display = '';
       } catch(err){
         pendingRestoreData = null;
@@ -2859,6 +2877,7 @@ function __startDraggableMenu(cfg) {
     renderBirthdayList();
     renderSpecialList();
     renderMeetingList();
+    renderGeneralList();
     closeRestoreModal();
     showToast('已回復備份資料');
   });
