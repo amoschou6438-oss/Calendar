@@ -887,6 +887,14 @@
         <label>時間（選填）</label>
         <input type="text" id="timeInput" placeholder="例如：10:00">
       </div>
+      <div id="editDateFieldWrap" style="display:none;">
+        <label>日期（可修改）</label>
+        <div class="inline-fields">
+          <div><select id="editYear"></select></div>
+          <div><select id="editMonth"></select></div>
+          <div><select id="editDay"></select></div>
+        </div>
+      </div>
       <div id="quickBirthdayFieldWrap" style="display:none;">
         <label>出生日期（西元年／月／日）</label>
         <div class="inline-fields">
@@ -1957,6 +1965,33 @@
     r.addEventListener('change', updateFormFieldsForTag);
   });
 
+  // --- 編輯事項時可修改日期 ---
+  const editYearSelect = document.getElementById('editYear');
+  const editMonthSelect = document.getElementById('editMonth');
+  const editDaySelect = document.getElementById('editDay');
+  (function(){
+    const curY = today.getFullYear();
+    for(let y = curY-5; y <= curY+10; y++){
+      const o = document.createElement('option'); o.value = y; o.textContent = y + '年'; editYearSelect.appendChild(o);
+    }
+    for(let m=1; m<=12; m++){
+      const o = document.createElement('option'); o.value = m; o.textContent = m + '月'; editMonthSelect.appendChild(o);
+    }
+  })();
+  function populateEditDayOptions(){
+    const y = Number(editYearSelect.value) || today.getFullYear();
+    const m = Number(editMonthSelect.value) || 1;
+    const dim = new Date(y, m, 0).getDate();
+    const prevVal = Number(editDaySelect.value) || 1;
+    editDaySelect.innerHTML = '';
+    for(let d=1; d<=dim; d++){
+      const o = document.createElement('option'); o.value = d; o.textContent = d + '日'; editDaySelect.appendChild(o);
+    }
+    editDaySelect.value = Math.min(prevVal, dim);
+  }
+  editYearSelect.addEventListener('change', populateEditDayOptions);
+  editMonthSelect.addEventListener('change', populateEditDayOptions);
+
   function startEdit(ev){
     // 會議類事項沒有對應的類別選項，改用「會議」視窗編輯
     if(ev.tag === 'general'){
@@ -1974,6 +2009,14 @@
       return;
     }
     editingId = ev.id;
+    {
+      const [ey, em, ed] = selectedKey.split('-').map(Number);
+      editYearSelect.value = ey;
+      editMonthSelect.value = em;
+      populateEditDayOptions();
+      editDaySelect.value = ed;
+      document.getElementById('editDateFieldWrap').style.display = '';
+    }
     document.getElementById('titleInput').value = ev.title;
     document.getElementById('timeInput').value = ev.time || '';
     const radio = document.querySelector('input[name=tag][value="'+ev.tag+'"]')
@@ -1989,6 +2032,7 @@
 
   function resetForm(){
     editingId = null;
+    document.getElementById('editDateFieldWrap').style.display = 'none';
     document.getElementById('titleInput').value = '';
     document.getElementById('timeInput').value = '';
     document.querySelector('input[name=tag][value="gold"]').checked = true;
@@ -2043,9 +2087,23 @@
     if(!events[selectedKey]) events[selectedKey] = [];
 
     if(editingId){
+      const ny = Number(editYearSelect.value), nm = Number(editMonthSelect.value), nd = Number(editDaySelect.value);
+      const newKey = (ny && nm && nd) ? fmtKey(ny, nm-1, nd) : selectedKey;
       const idx = events[selectedKey].findIndex(e=>e.id===editingId);
       if(idx>-1){
-        events[selectedKey][idx] = {id: editingId, title, time, tag};
+        const updated = {id: editingId, title, time, tag};
+        if(newKey !== selectedKey){
+          // 日期有修改：從原日期移除，放到新日期
+          events[selectedKey].splice(idx, 1);
+          if(events[selectedKey].length===0) delete events[selectedKey];
+          if(!events[newKey]) events[newKey] = [];
+          events[newKey].push(updated);
+          viewYear = ny;
+          viewMonth = nm - 1;
+          selectedKey = newKey;
+        } else {
+          events[selectedKey][idx] = updated;
+        }
       }
       setStatus('已更新');
     } else {
