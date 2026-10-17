@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<!--EMB-BACKUP-START--><script>(function(){try{var E={"id":"cal","t":"2026-10-17T08:24:57.843Z","set":{"calendar-events-v1":"{\"2026-09-13\":[{\"id\":\"s1\",\"title\":\"祭拜理事\",\"time\":\"10:00\",\"tag\":\"red\"}],\"2026-09-20\":[{\"id\":\"s2\",\"title\":\"童蒙班\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-09-26\":[{\"id\":\"s3\",\"title\":\"台北簽約\",\"time\":\"\",\"tag\":\"red\"}],\"2026-09-27\":[{\"id\":\"s4\",\"title\":\"青少班\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-10-02\":[{\"id\":\"s5\",\"title\":\"童蒙班會議\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-10-03\":[{\"id\":\"s6\",\"title\":\"學人班\",\"time\":\"08:00到\",\"tag\":\"gold\"}],\"2026-10-08\":[{\"id\":\"s7\",\"title\":\"青少班會議\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-10-31\":[{\"id\":\"s8\",\"title\":\"回報餐點\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-11-21\":[{\"id\":\"s11\",\"title\":\"戶外場佈\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-11-22\":[{\"id\":\"s12\",\"title\":\"戶外活動\",\"time\":\"\",\"tag\":\"red\"}],\"2026-11-06\":[{\"id\":\"ev1791028102003772\",\"title\":\"童蒙線上會議\",\"time\":\"20:00\",\"tag\":\"meeting\"}],\"2026-12-04\":[{\"id\":\"ev1791038935377173\",\"title\":\"童蒙班會議\",\"time\":\"20:00\",\"tag\":\"meeting\"}],\"2026-10-29\":[{\"id\":\"s9\",\"title\":\"戶外行前會議\",\"time\":\"\",\"tag\":\"gold\"}],\"2026-10-16\":[{\"id\":\"ev1791695206700762\",\"title\":\"茶會會議\",\"time\":\"20:00\",\"tag\":\"general\"}]}","calendar-routines-v1":"[{\"id\":\"r179102842916611\",\"title\":\"青少班\",\"time\":\"08:00\",\"tag\":\"gold\",\"weekday\":0,\"ordinal\":4,\"months\":[1,10,11,12],\"exceptions\":[]},{\"id\":\"r179102846976645\",\"title\":\"童蒙班\",\"time\":\"08:00\",\"tag\":\"gold\",\"weekday\":0,\"ordinal\":3,\"months\":[1,10,11,12],\"exceptions\":[]},{\"id\":\"r179102850106353\",\"title\":\"學人班\",\"time\":\"08:00\",\"tag\":\"gold\",\"weekday\":6,\"ordinal\":1,\"months\":[1,11,12],\"exceptions\":[]}]","calendar-birthdays-v1":"[{\"id\":\"b1791028224232593\",\"name\":\"梁升威\",\"year\":1984,\"month\":3,\"day\":22,\"tag\":\"birthday\",\"exceptions\":[]},{\"id\":\"b179102829034315\",\"name\":\"Con trai Hà Thanh Lệ何青黎\",\"year\":2003,\"month\":5,\"day\":18,\"tag\":\"birthday\",\"exceptions\":[]},{\"id\":\"b1791028353155862\",\"name\":\"Hà Văn Sâm何文森\",\"year\":2005,\"month\":8,\"day\":18,\"tag\":\"birthday\",\"exceptions\":[]}]","calendar-specials-v1":"[{\"id\":\"sp179137460484298\",\"name\":\"車貸繳款$5333\",\"freq\":\"monthly\",\"month\":null,\"day\":23,\"endDate\":\"2028-01-23\",\"tag\":\"special\",\"exceptions\":[]},{\"id\":\"sp1791488204093896\",\"name\":\"中國信託信用卡繳費日\",\"freq\":\"monthly\",\"month\":null,\"day\":25,\"endDate\":null,\"tag\":\"special\",\"exceptions\":[]},{\"id\":\"sp1791488342214621\",\"name\":\"房貸繳費日\",\"freq\":\"monthly\",\"month\":null,\"day\":1,\"endDate\":null,\"tag\":\"special\",\"exceptions\":[]}]"},"merge":{}};var mk="emb_applied_"+E.id;if(localStorage.getItem(mk)===E.t)return;var k,d,o,s;for(k in E.set)localStorage.setItem(k,E.set[k]);for(k in E.merge){o={};try{o=JSON.parse(localStorage.getItem(k))||{}}catch(e){}s=E.merge[k];for(d in s)o[d]=s[d];localStorage.setItem(k,JSON.stringify(o))}localStorage.setItem(mk,E.t)}catch(e){}})();</script><!--EMB-BACKUP-END-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>萬年曆</title>
@@ -2953,6 +2952,29 @@ function __startDraggableMenu(cfg) {
     showToast._t = setTimeout(()=> el.classList.remove('show'), 2500);
   }
 
+
+// ── 完整備份輔助：打包／還原此頁面存在瀏覽器裡的「全部」資料（localStorage 所有項目）──
+function __bkSnapshotLS(skip) {
+  const o = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (skip && skip.indexOf(k) >= 0) continue;
+      o[k] = localStorage.getItem(k);
+    }
+  } catch (e) {}
+  return o;
+}
+function __bkRestoreLS(snap, skip) {
+  if (!snap || typeof snap !== 'object') return 0;
+  let n = 0;
+  Object.keys(snap).forEach(k => {
+    if (skip && skip.indexOf(k) >= 0) return;
+    if (typeof snap[k] !== 'string') return;
+    try { localStorage.setItem(k, snap[k]); n++; } catch (e) {}
+  });
+  return n;
+}
   function exportBackup(){
     closeScheduleTypeModal();
     closeRestoreModal();
@@ -2964,7 +2986,8 @@ function __startDraggableMenu(cfg) {
         events: events,
         routines: routines,
         birthdays: birthdays,
-        specials: specials
+        specials: specials,
+        localStorageAll: __bkSnapshotLS()   // 此頁面存在瀏覽器的全部資料
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
       const url = URL.createObjectURL(blob);
@@ -3054,6 +3077,7 @@ function __startDraggableMenu(cfg) {
 
   document.getElementById('confirmRestoreBtn').addEventListener('click', async ()=>{
     if(!pendingRestoreData) return;
+    __bkRestoreLS(pendingRestoreData.localStorageAll, [STORAGE_KEY, ROUTINE_STORAGE_KEY, BIRTHDAY_STORAGE_KEY, SPECIAL_STORAGE_KEY]);
     events = (pendingRestoreData.events && typeof pendingRestoreData.events === 'object') ? pendingRestoreData.events : {};
     routines = Array.isArray(pendingRestoreData.routines) ? pendingRestoreData.routines : [];
     birthdays = Array.isArray(pendingRestoreData.birthdays) ? pendingRestoreData.birthdays : [];
